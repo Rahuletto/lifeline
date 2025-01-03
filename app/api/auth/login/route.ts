@@ -1,9 +1,9 @@
-import { account } from "@/sdk/appwrite";
-import { generateJWT } from "@/utils/generateJWT";
 import { NextRequest, NextResponse } from "next/server";
+import { AuthService } from "@/sdk/auth";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
+  const auth = new AuthService();
 
   if (!email || !password) {
     return NextResponse.json(
@@ -13,15 +13,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Create email session and get complete session object
-    const session = await account.createEmailPasswordSession(email, password);
+    const session = await auth.login({email, password});
 
-    // Return full session object containing JWT and other details
     return NextResponse.json(
       {
+        ...session,
         sessionId: session.$id,
         userId: session.userId,
-        token: await generateJWT(session.userId), // JWT token
+        token: session.secret, // JWT token
         expires: "10d",
       },
       { status: 200 }

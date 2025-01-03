@@ -1,14 +1,13 @@
 import { databases, ID } from "@/sdk/appwrite";
-import { Contact } from "@/types/Contact";
+import { Medications } from "@/types/Medications";
 import { validateAuth } from "@/utils/validateAuth";
-import { validateContact } from "@/utils/validateContact";
 import { NextRequest } from "next/server";
 
 const databaseId = "676e6b1500115397e9e7";
-const collectionId = "emergency_contacts";
+const collectionId = "medications";
 
-interface SOSPostBody {
-  contacts: Contact[];
+interface MedicationBody {
+  medications: Medications[];
 }
 
 // GET
@@ -32,7 +31,7 @@ export async function GET(req: NextRequest) {
     return Response.json(
       {
         id: document.id,
-        contacts: document.contacts.map((c: string) => JSON.parse(c)),
+        medications: document.medications.map((c: string) => JSON.parse(c)),
       },
       { status: 200 }
     );
@@ -55,14 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   const id = session;
-  const { contacts }: SOSPostBody = await req.json();
-
-  for (const contact of contacts) {
-    const validationError = validateContact(contact);
-    if (validationError) {
-      return Response.json({ error: validationError }, { status: 400 });
-    }
-  }
+  const { medications }: MedicationBody = await req.json();
 
   try {
     let document;
@@ -77,45 +69,57 @@ export async function POST(req: NextRequest) {
     }
 
     if (document) {
-      const updatedContacts = [
-        ...document.contacts.map((c: string) => JSON.parse(c)),
-        ...contacts.map((contact) => ({ id: ID.unique(), ...contact })),
+      const updatedmedications = [
+        ...document.medications.map((c: string) => JSON.parse(c)),
+        ...medications.map((medication) => ({
+          id: ID.unique(),
+          ...medication,
+        })),
       ];
       const updatedDocument = await databases.updateDocument(
         databaseId,
         collectionId,
         id as string,
-        { contacts: updatedContacts.map((contact) => JSON.stringify(contact)) }
+        {
+          medications: updatedmedications.map((medication) =>
+            JSON.stringify(medication)
+          ),
+        }
       );
       return Response.json(
         {
           id: updatedDocument.id,
-          contacts: updatedContacts,
+          medications: updatedmedications,
         },
         { status: 200 }
       );
     } else {
-      const newContacts = contacts.map((contact) => ({
+      const newmedications = medications.map((medication) => ({
         id: ID.unique(),
-        ...contact,
+        ...medication,
       }));
       const newDocument = await databases.createDocument(
         databaseId,
         collectionId,
         id as string,
-        { id, contacts: newContacts.map((contact) => JSON.stringify(contact)) }
+        {
+          id,
+          medications: newmedications.map((medication) =>
+            JSON.stringify(medication)
+          ),
+        }
       );
       return Response.json(
         {
           id: newDocument.id,
-          contacts: newContacts,
+          medications: newmedications,
         },
         { status: 201 }
       );
     }
   } catch (err) {
     return Response.json(
-      { error: "Failed to create or add contact: " + err },
+      { error: "Failed to create or add medication: " + err },
       { status: 500 }
     );
   }
@@ -132,7 +136,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const id = session;
-  const { contactId } = await req.json();
+  const { medicationId } = await req.json();
 
   try {
     const document = await databases.getDocument(
@@ -140,29 +144,31 @@ export async function DELETE(req: NextRequest) {
       collectionId,
       id as string
     );
-    const parsed = document.contacts.map((c: string) => JSON.parse(c));
-    const updatedContacts = parsed.filter((c: Contact) => c.id !== contactId);
+    const parsed = document.medications.map((c: string) => JSON.parse(c));
+    const updatedmedications = parsed.filter(
+      (c: Medications) => c.id !== medicationId
+    );
 
     const updatedDocument = await databases.updateDocument(
       databaseId,
       collectionId,
       id as string,
       {
-        contacts: updatedContacts.map((contact: Contact) =>
-          JSON.stringify(contact)
+        medications: updatedmedications.map((medication: Medications) =>
+          JSON.stringify(medication)
         ),
       }
     );
     return Response.json(
       {
         id: updatedDocument.id,
-        contacts: updatedContacts,
+        medications: updatedmedications,
       },
       { status: 200 }
     );
   } catch {
     return Response.json(
-      { error: "Failed to delete contact" },
+      { error: "Failed to delete medication" },
       { status: 500 }
     );
   }
@@ -180,7 +186,7 @@ export async function PUT(req: NextRequest) {
 
   const id = session;
   const body = await req.json();
-  const contactId = body.contactId;
+  const medicationId = body.medicationId;
 
   try {
     const document = await databases.getDocument(
@@ -188,17 +194,18 @@ export async function PUT(req: NextRequest) {
       collectionId,
       id as string
     );
-    let updatedContacts = document.contacts;
 
-    const parsed = document.contacts.map((c: string) => JSON.parse(c));
+    const parsed = document.medications.map((c: string) => JSON.parse(c));
 
-    updatedContacts = parsed.map((c: Contact) =>
-      c.id === contactId
+    const updatedmedications = parsed.map((c: Medications) =>
+      c.id === medicationId
         ? {
             id: c.id,
             name: body.name ?? c.name,
-            phone: body.phone ?? c.phone,
-            relationship: body.relationship ?? c.relationship,
+            dosage: body.dosage ?? c.dosage,
+            frequency: body.frequency ?? c.frequency,
+            notes: body.notes ?? c.notes,
+            reminders: body.reminders ?? c.reminders,
           }
         : c
     );
@@ -208,21 +215,21 @@ export async function PUT(req: NextRequest) {
       collectionId,
       id as string,
       {
-        contacts: updatedContacts.map((contact: Contact) =>
-          JSON.stringify(contact)
+        medications: updatedmedications.map((medication: Medications) =>
+          JSON.stringify(medication)
         ),
       }
     );
     return Response.json(
       {
         id: updatedDocument.id,
-        contacts: updatedContacts,
+        medications: updatedmedications,
       },
       { status: 200 }
     );
   } catch {
     return Response.json(
-      { error: "Failed to update contact" },
+      { error: "Failed to update medication" },
       { status: 500 }
     );
   }
