@@ -1,5 +1,5 @@
+import { AuthService } from "@/sdk/auth";
 import { NextRequest } from "next/server";
-import { getIdFromJWT } from "./generateJWT";
 
 export async function validateAuth(req: NextRequest) {
   try {
@@ -18,3 +18,16 @@ export async function validateAuth(req: NextRequest) {
     throw new Error((error as Error).message);
   }
 }
+
+const getIdFromJWT = async (token: string) => {
+  const auth = new AuthService();
+
+  try {
+    await auth.sessionClient.setSession(token)
+    const response = await auth.sessionAccount.get();
+    return response?.targets[0].userId ?? "";
+  } catch (err) {
+    console.log(err)
+    return null;
+  }
+};
