@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
 const Hospitals: React.FC = () => {
-    const [currentPosition, setCurrentPosition] = useState({ lat: 0, lng: 0 });
+
     const [iframeSrc, setIframeSrc] = useState('');
 
     useEffect(() => {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                setCurrentPosition({ lat: latitude, lng: longitude });
 
                 const src = `https://www.google.com/maps?q=hospitals+near+${latitude},${longitude}&z=18&output=embed&ll=${latitude},${longitude}&spn=0.005,0.005&markers=color:blue|${latitude},${longitude}`;
                 setIframeSrc(src);

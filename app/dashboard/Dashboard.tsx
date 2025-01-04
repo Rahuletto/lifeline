@@ -7,6 +7,7 @@ import { Models } from "node-appwrite";
 import { FaCartPlus, FaHospital, FaUser } from "react-icons/fa6";
 import { MdEmergency, MdMedication } from "react-icons/md";
 import Hospitals from "./sections/Hospitals";
+import Emergency from "./sections/Emergency";
 
 const navbar = [
   {
@@ -78,9 +79,9 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
-            <div className="w-full rounded-2xl h-full">
+            <div className="w-full pl-8 h-full border-l border-l-white/10">
               {
-                section === "map" && <Hospitals />
+                section === "emergency" ? <Emergency /> : section === "map" && <Hospitals />
               }
 
             </div>
