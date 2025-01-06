@@ -9,9 +9,12 @@ export interface UserData {
     bloodGroup?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
     height?: number; // in cm
     weight?: number; // in kg
-    emergency?: Contact[];
-    allergies?: string[];
+    allergies?: string[];    
     medications?: Medications[];
+    emergencyContact?: Contact[];
     chronicConditions?: string[];
     lastCheckup?: string;
+  }
+  export interface ResponseUser {
+    user: UserData;
   }
