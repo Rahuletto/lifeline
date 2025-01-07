@@ -12,6 +12,7 @@ import { getCookie } from "@/utils/cookie";
 import { ResponseUser, UserData } from "@/types/User";
 import About from "./sections/About";
 import MedicationSection from "./sections/Medications";
+import OrderMed from "./sections/Order";
 
 const navbar = [
   {
@@ -103,7 +104,7 @@ export default function Dashboard() {
             </div>
             <div className="w-full lg:pl-8 h-full lg:border-l border-l-white/10">
               {
-                section === "about" ? <About user={data} /> : section === "emergency" ? <Emergency emergencyContacts={data.emergencyContact ?? []} /> : section === "map" ? <Hospitals /> : section === "medications" && <MedicationSection data={data.medications ?? []} />
+                section === "about" ? <About user={data} /> : section === "emergency" ? <Emergency emergencyContacts={data.emergencyContact ?? []} /> : section === "map" ? <Hospitals /> : section === "medications" ? <MedicationSection data={data.medications ?? []} /> : section === "order" && <OrderMed data={data.medications ?? []} />
               }
 
             </div>
